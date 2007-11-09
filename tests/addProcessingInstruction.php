@@ -31,7 +31,7 @@ class SXE_TestCase_addProcessingInstruction extends PHPUnit_Framework_TestCase
 	public function testNoData()
 	{
 		$root = new SXE('<root />');
-		$expected_xml = '<?xml-stylesheet ?><root />';
+		$expected_xml = '<?xml-stylesheet?><root />';
 
 		$return = $root->addProcessingInstruction('xml-stylesheet');
 
@@ -57,7 +57,7 @@ class SXE_TestCase_addProcessingInstruction extends PHPUnit_Framework_TestCase
 
 		$return = $root->addProcessingInstruction('xml-stylesheet', array(
 			'type' => 'text/xsl',
-			'href' => '"foo.xsl"'
+			'href' => 'foo.xsl'
 		));
 
 		$this->assertTrue($return);

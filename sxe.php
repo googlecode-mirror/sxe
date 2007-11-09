@@ -33,7 +33,7 @@ class SXE extends SimpleXMLElement
 		$new = $tmp->ownerDocument->importNode(dom_import_simplexml($new), true);
 
 		$node = $tmp->appendChild($new);
-		return ($node instanceof DOMElement) ? simplexml_import_dom($node, get_class($this)) : false;
+		return simplexml_import_dom($node, get_class($this));
 	}
 
 	/**
@@ -50,15 +50,9 @@ class SXE extends SimpleXMLElement
 		$tmp = dom_import_simplexml($this);
 		$new = $tmp->ownerDocument->importNode(dom_import_simplexml($new), true);
 
-		assert($tmp->ownerDocument === $new->ownerDocument);
-
 		if (isset($ref))
 		{
 			$ref = dom_import_simplexml($ref);
-
-			assert($tmp->ownerDocument === $ref->ownerDocument);
-			assert($ref->parentNode === $tmp);
-
 			$node = $tmp->insertBefore($new, $ref);
 		}
 		else
@@ -66,7 +60,7 @@ class SXE extends SimpleXMLElement
 			$node = $tmp->insertBefore($new);
 		}
 
-		return ($node instanceof DOMElement) ? simplexml_import_dom($node, get_class($this)) : false;
+		return simplexml_import_dom($node, get_class($this));
 	}
 
 	/**
@@ -84,12 +78,8 @@ class SXE extends SimpleXMLElement
 		$old = dom_import_simplexml($old);
 		$new = $tmp->ownerDocument->importNode(dom_import_simplexml($new), true);
 
-		assert($tmp->ownerDocument === $old->ownerDocument);
-		assert($tmp->ownerDocument === $new->ownerDocument);
-		assert($old->parentNode === $tmp);
-
 		$node = $tmp->replaceChild($new, $old);
-		return ($node instanceof DOMElement) ? simplexml_import_dom($node, get_class($this)) : false;
+		return simplexml_import_dom($node, get_class($this));
 	}
 
 	/**
@@ -105,11 +95,8 @@ class SXE extends SimpleXMLElement
 		$tmp = dom_import_simplexml($this);
 		$old = dom_import_simplexml($old);
 
-		assert($tmp->ownerDocument === $old->ownerDocument);
-		assert($old->parentNode === $tmp);
-
 		$node = $tmp->removeChild($old);
-		return ($node instanceof DOMElement) ? simplexml_import_dom($node, get_class($this)) : false;
+		return simplexml_import_dom($node, get_class($this));
 	}
 
 	/**
@@ -118,11 +105,14 @@ class SXE extends SimpleXMLElement
 	* @see http://php.net/manual/function.dom-domdocumentfragment-appendxml.php
 	*
 	* @param	string	$xml	XML to append
-	* @return	SXE				The created node on success or FALSE on failure
+	* @return	SXE				The appended node on success or FALSE on failure
 	*/
 	public function appendXML($xml)
 	{
-		assert(is_string($xml));
+		if (!is_string($xml))
+		{
+			throw new Exception('Argument 1 passed to appendXML() must be a string, ' . gettype($xml) . ' given');
+		}
 
 		$tmp = dom_import_simplexml($this);
 		$fragment = $tmp->ownerDocument->createDocumentFragment();
@@ -133,13 +123,60 @@ class SXE extends SimpleXMLElement
 		}
 
 		$node = $tmp->appendChild($fragment);
-		return ($node instanceof DOMElement) ? simplexml_import_dom($node, get_class($this)) : false;
+		return simplexml_import_dom($node, get_class($this));
+	}
+
+	/**
+	* Search for an element with a certain ID
+	*
+	* NOTE: in case of multiple elements having the same ID, only the first one is returned.
+	* Also, this method does NOT check whether the given ID would be valid value.
+	*
+	* @param	string	$id		Element ID
+	* @return	SXE				The node on success, or FALSE otherwise
+	*/
+	public function getElementById($id)
+	{
+		if (!is_string($id))
+		{
+			throw new Exception('Argument 1 passed to getElementsByTagName() must be a string, ' . gettype($id) . ' given');
+		}
+
+		$nodes = $this->xpath('//*[@id="' . htmlspecialchars($id) . '"]');
+
+		if (empty($nodes))
+		{
+			return false;
+		}
+
+		return $nodes[0];
+	}
+
+	/**
+	* Search for all elements with given tag name
+	*
+	* @param	string	$tag	Tag name
+	* @return	array			Array of SXE nodes
+	*/
+	public function getElementsByTagName($tag)
+	{
+		if (!is_string($tag))
+		{
+			throw new Exception('Argument 1 passed to getElementsByTagName() must be a string, ' . gettype($tag) . ' given');
+		}
+
+		if (!preg_match('#^(?:[a-z_0-9]+:)?[a-z0-9]+$#iD', $tag))
+		{
+			throw new Exception('Invalid tag name passed to getElementsByTagName()');
+		}
+
+		return $this->xpath('//' . $tag);
 	}
 
 	/**
 	* Return current node's parent
 	*
-	* @return	SXE							Parent node if applicable, or current node otherwise
+	* @return	SXE				Parent node if applicable, or current node otherwise
 	*/
 	public function parentNode()
 	{
@@ -150,45 +187,77 @@ class SXE extends SimpleXMLElement
 	/**
 	* Return the first child of this node
 	*
-	* @return	SXE							SXE node if applicable, NULL otherwise
+	* @return	SXE				SXE node if applicable, NULL otherwise
 	*/
 	public function firstChild()
 	{
 		$tmp = dom_import_simplexml($this);
-		return (isset($tmp->firstChild)) ? simplexml_import_dom($tmp->firstChild, get_class($this)) : null;
+
+		if (isset($tmp->firstChild))
+		{
+			return simplexml_import_dom($tmp->firstChild, get_class($this));
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	/**
 	* Return the last child of this node
 	*
-	* @return	SXE							SXE node if applicable, NULL otherwise
+	* @return	SXE				SXE node if applicable, NULL otherwise
 	*/
 	public function lastChild()
 	{
 		$tmp = dom_import_simplexml($this);
-		return (isset($tmp->lastChild)) ? simplexml_import_dom($tmp->lastChild, get_class($this)) : null;
+
+		if (isset($tmp->lastChild))
+		{
+			return simplexml_import_dom($tmp->lastChild, get_class($this));
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	/**
 	* Return the node immediately preceding this node
 	*
-	* @return	SXE							SXE node if applicable, NULL otherwise
+	* @return	SXE				SXE node if applicable, NULL otherwise
 	*/
 	public function previousSibling()
 	{
 		$tmp = dom_import_simplexml($this);
-		return (isset($tmp->previousSibling)) ? simplexml_import_dom($tmp->previousSibling, get_class($this)) : null;
+
+		if (isset($tmp->previousSibling))
+		{
+			return simplexml_import_dom($tmp->previousSibling, get_class($this));
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	/**
 	* Return the node immediately following this node
 	*
-	* @return	SXE							SXE node if applicable, NULL otherwise
+	* @return	SXE				SXE node if applicable, NULL otherwise
 	*/
 	public function nextSibling()
 	{
 		$tmp = dom_import_simplexml($this);
-		return (isset($tmp->nextSibling)) ? simplexml_import_dom($tmp->nextSibling, get_class($this)) : null;
+
+		if (isset($tmp->nextSibling))
+		{
+			return simplexml_import_dom($tmp->nextSibling, get_class($this));
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	/**
@@ -199,11 +268,14 @@ class SXE extends SimpleXMLElement
 	*/
 	public function removeNodes($xpath)
 	{
-		assert(is_string($xpath));
+		if (!is_string($xpath))
+		{
+			throw new Exception('Argument 1 passed to removeNodes() must be a string, ' . gettype($xpath) . ' given');
+		}
 
 		$nodes = $this->xpath($xpath);
 
-		if (!$nodes)
+		if ($nodes === false)
 		{
 			return false;
 		}
@@ -226,11 +298,14 @@ class SXE extends SimpleXMLElement
 	*/
 	public function replaceNodes($xpath, SimpleXMLElement $new)
 	{
-		assert(is_string($xpath));
+		if (!is_string($xpath))
+		{
+			throw new Exception('Argument 1 passed to deleteNodes() must be a string, ' . gettype($xpath) . ' given');
+		}
 
 		$nodes = $this->xpath($xpath);
 
-		if (!$nodes)
+		if ($nodes === false)
 		{
 			return false;
 		}
@@ -252,7 +327,10 @@ class SXE extends SimpleXMLElement
 	*/
 	public function deleteNodes($xpath)
 	{
-		assert(is_string($xpath));
+		if (!is_string($xpath))
+		{
+			throw new Exception('Argument 1 passed to deleteNodes() must be a string, ' . gettype($xpath) . ' given');
+		}
 
 		$cnt = 0;
 		if ($nodes = $this->xpath($xpath))
@@ -278,10 +356,8 @@ class SXE extends SimpleXMLElement
 	{
 		$tmp = dom_import_simplexml($this);
 
-		assert(isset($tmp->parentNode));
-
 		$node = $tmp->parentNode->removeChild($tmp);
-		return ($node instanceof DOMElement) ? simplexml_import_dom($node, get_class($this)) : false;
+		return simplexml_import_dom($node, get_class($this));
 	}
 
 	/**
@@ -295,11 +371,8 @@ class SXE extends SimpleXMLElement
 		$old = dom_import_simplexml($this);
 		$new = $old->ownerDocument->importNode(dom_import_simplexml($new), true);
 
-		assert(isset($old->parentNode));
-		assert($old->ownerDocument === $new->ownerDocument);
-
 		$node = $old->parentNode->replaceChild($new, $old);
-		return ($node instanceof DOMElement) ? simplexml_import_dom($node, get_class($this)) : false;
+		return simplexml_import_dom($node, get_class($this));
 	}
 
 	/**
@@ -310,9 +383,6 @@ class SXE extends SimpleXMLElement
 	public function delete()
 	{
 		$tmp = dom_import_simplexml($this);
-
-		assert(isset($tmp->parentNode));
-
 		return (bool) ($tmp->parentNode->removeChild($tmp));
 	}
 
@@ -330,11 +400,13 @@ class SXE extends SimpleXMLElement
 		/**
 		* We don't want to insert anything before the root node
 		*/
-		assert($tmp->parentNode instanceof DOMElement);
-		assert($tmp->ownerDocument === $new->ownerDocument);
+		if (!$tmp->parentNode instanceof DOMElement)
+		{
+			throw new Exception('Cannot insert nodes outside of root node');
+		}
 
 		$node = $tmp->parentNode->insertBefore($new, $tmp);
-		return ($node instanceof DOMElement) ? simplexml_import_dom($node, get_class($this)) : false;
+		return simplexml_import_dom($node, get_class($this));
 	}
 
 	/**
@@ -351,8 +423,10 @@ class SXE extends SimpleXMLElement
 		/**
 		* We don't want to insert anything after the root node
 		*/
-		assert(!$tmp->parentNode instanceof DOMElement);
-		assert($tmp->ownerDocument === $new->ownerDocument);
+		if (!$tmp->parentNode instanceof DOMElement)
+		{
+			throw new Exception('Cannot insert nodes outside of root node');
+		}
 
 		if (isset($tmp->nextSibling))
 		{
@@ -363,7 +437,7 @@ class SXE extends SimpleXMLElement
 			$node = $tmp->parentNode->appendChild($new);
 		}
 
-		return ($node instanceof DOMElement) ? simplexml_import_dom($node, get_class($this)) : false;
+		return simplexml_import_dom($node, get_class($this));
 	}
 
 	/**
@@ -393,8 +467,10 @@ class SXE extends SimpleXMLElement
 
 				$data = substr($str, 0, -1);
 			}
-
-			assert(is_string($data));
+			elseif (!is_string($data))
+			{
+				throw new Exception('Argument 2 passed to addProcessingInstruction() must be an array or a string, ' . gettype($xml) . ' given');
+			}
 
 			$pi = $doc->createProcessingInstruction($target, $data);
 		}

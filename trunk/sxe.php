@@ -452,6 +452,11 @@ class SXE extends SimpleXMLElement
 	*/
 	public function addProcessingInstruction($target, $data = null)
 	{
+		if (!is_string($target))
+		{
+			throw new Exception('Argument 1 passed to addProcessingInstruction() must be a string, ' . gettype($xml) . ' given');
+		}
+
 		$tmp = dom_import_simplexml($this);
 		$doc = $tmp->ownerDocument;
 

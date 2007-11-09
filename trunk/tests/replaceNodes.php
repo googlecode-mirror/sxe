@@ -162,4 +162,25 @@ class SXE_TestCase_replaceNodes extends PHPUnit_Framework_TestCase
 			self::fail();
 		}
 	}
+
+	public function testInvalidXPath()
+	{
+		$root = new SXE('<root />');
+		$new = new SXE('<new />');
+
+		if (!libxml_use_internal_errors())
+		{
+			$restore = true;
+			libxml_use_internal_errors(true);
+		}
+
+		$return = $root->replaceNodes('????', $new);
+
+		if (isset($restore))
+		{
+			libxml_use_internal_errors(false);
+		}
+
+		$this->assertFalse($return);
+	}
 }

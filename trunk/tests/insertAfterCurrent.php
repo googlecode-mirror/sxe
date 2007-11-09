@@ -30,22 +30,32 @@ class SXE_TestCase_insertAfterCurrent extends PHPUnit_Framework_TestCase
 {
 	public function testAfterFirstChild()
 	{
-		$root = new SXE('<root><child /></root>');
+		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
 		$new = new SXE('<new />');
 
-		$root->child->insertAfterCurrent($new);
+		$root->child1->insertAfterCurrent($new);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child /><new /></root>');
+		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child1 /><new /><child2 /><child3 /></root>');
+	}
+
+	public function testAfterMiddleChild()
+	{
+		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
+		$new = new SXE('<new />');
+
+		$root->child2->insertAfterCurrent($new);
+
+		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child1 /><child2 /><new /><child3 /></root>');
 	}
 
 	public function testAfterLastChild()
 	{
-		$root = new SXE('<root><child /><otherchild /></root>');
+		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
 		$new = new SXE('<new />');
 
-		$root->otherchild->insertAfterCurrent($new);
+		$root->child3->insertAfterCurrent($new);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child /><otherchild /><new /></root>');
+		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child1 /><child2 /><child3 /><new /></root>');
 	}
 
 	public function testReturn()

@@ -134,11 +134,10 @@ class SXE_TestCase_removeNodes extends PHPUnit_Framework_TestCase
 	public function testInvalidArgumentType()
 	{
 		$root = new SXE('<root />');
-		$new = new SXE('<new />');
 
 		try
 		{
-			$root->removeNodes(false, $new);
+			$root->removeNodes(false);
 			$fail = true;
 		}
 		catch (Exception $e)
@@ -150,5 +149,25 @@ class SXE_TestCase_removeNodes extends PHPUnit_Framework_TestCase
 		{
 			self::fail();
 		}
+	}
+
+	public function testInvalidXPath()
+	{
+		$root = new SXE('<root />');
+
+		if (!libxml_use_internal_errors())
+		{
+			$restore = true;
+			libxml_use_internal_errors(true);
+		}
+
+		$return = $root->removeNodes('????');
+
+		if (isset($restore))
+		{
+			libxml_use_internal_errors(false);
+		}
+
+		$this->assertFalse($return);
 	}
 }

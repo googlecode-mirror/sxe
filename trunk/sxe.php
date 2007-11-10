@@ -111,7 +111,7 @@ class SXE extends SimpleXMLElement
 	{
 		if (!is_string($xml))
 		{
-			throw new Exception('Argument 1 passed to appendXML() must be a string, ' . gettype($xml) . ' given');
+			throw new InvalidArgumentException('Argument 1 passed to appendXML() must be a string, ' . gettype($xml) . ' given');
 		}
 
 		$tmp = dom_import_simplexml($this);
@@ -139,7 +139,7 @@ class SXE extends SimpleXMLElement
 	{
 		if (!is_string($id))
 		{
-			throw new Exception('Argument 1 passed to getElementsByTagName() must be a string, ' . gettype($id) . ' given');
+			throw new InvalidArgumentException('Argument 1 passed to getElementsByTagName() must be a string, ' . gettype($id) . ' given');
 		}
 
 		$nodes = $this->xpath('//*[@id="' . htmlspecialchars($id) . '"]');
@@ -162,12 +162,12 @@ class SXE extends SimpleXMLElement
 	{
 		if (!is_string($tag))
 		{
-			throw new Exception('Argument 1 passed to getElementsByTagName() must be a string, ' . gettype($tag) . ' given');
+			throw new InvalidArgumentException('Argument 1 passed to getElementsByTagName() must be a string, ' . gettype($tag) . ' given');
 		}
 
 		if (!preg_match('#^(?:[a-z_0-9]+:)?[a-z0-9]+$#iD', $tag))
 		{
-			throw new Exception('Invalid tag name passed to getElementsByTagName()');
+			throw new InvalidArgumentException('Invalid tag name passed to getElementsByTagName()');
 		}
 
 		return $this->xpath('//' . $tag);
@@ -270,7 +270,7 @@ class SXE extends SimpleXMLElement
 	{
 		if (!is_string($xpath))
 		{
-			throw new Exception('Argument 1 passed to removeNodes() must be a string, ' . gettype($xpath) . ' given');
+			throw new InvalidArgumentException('Argument 1 passed to removeNodes() must be a string, ' . gettype($xpath) . ' given');
 		}
 
 		$nodes = $this->xpath($xpath);
@@ -300,7 +300,7 @@ class SXE extends SimpleXMLElement
 	{
 		if (!is_string($xpath))
 		{
-			throw new Exception('Argument 1 passed to deleteNodes() must be a string, ' . gettype($xpath) . ' given');
+			throw new InvalidArgumentException('Argument 1 passed to deleteNodes() must be a string, ' . gettype($xpath) . ' given');
 		}
 
 		$nodes = $this->xpath($xpath);
@@ -329,7 +329,7 @@ class SXE extends SimpleXMLElement
 	{
 		if (!is_string($xpath))
 		{
-			throw new Exception('Argument 1 passed to deleteNodes() must be a string, ' . gettype($xpath) . ' given');
+			throw new InvalidArgumentException('Argument 1 passed to deleteNodes() must be a string, ' . gettype($xpath) . ' given');
 		}
 
 		$cnt = 0;
@@ -454,7 +454,7 @@ class SXE extends SimpleXMLElement
 	{
 		if (!is_string($target))
 		{
-			throw new Exception('Argument 1 passed to addProcessingInstruction() must be a string, ' . gettype($xml) . ' given');
+			throw new InvalidArgumentException('Argument 1 passed to addProcessingInstruction() must be a string, ' . gettype($xml) . ' given');
 		}
 
 		$tmp = dom_import_simplexml($this);
@@ -474,7 +474,7 @@ class SXE extends SimpleXMLElement
 			}
 			elseif (!is_string($data))
 			{
-				throw new Exception('Argument 2 passed to addProcessingInstruction() must be an array or a string, ' . gettype($xml) . ' given');
+				throw new InvalidArgumentException('Argument 2 passed to addProcessingInstruction() must be an array or a string, ' . gettype($xml) . ' given');
 			}
 
 			$pi = $doc->createProcessingInstruction($target, $data);

@@ -152,7 +152,7 @@ class SXE_TestCase_replaceNodes extends PHPUnit_Framework_TestCase
 			$root->replaceNodes(false, $new);
 			$fail = true;
 		}
-		catch (Exception $e)
+		catch (InvalidArgumentException $e)
 		{
 			$fail = false;
 		}

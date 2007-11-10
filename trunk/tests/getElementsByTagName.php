@@ -92,7 +92,7 @@ class SXE_TestCase_getElementsByTagName extends PHPUnit_Framework_TestCase
 			$root->getElementsByTagName(false);
 			$fail = true;
 		}
-		catch (Exception $e)
+		catch (InvalidArgumentException $e)
 		{
 			$fail = false;
 		}
@@ -112,7 +112,7 @@ class SXE_TestCase_getElementsByTagName extends PHPUnit_Framework_TestCase
 			$root->getElementsByTagName('$$$$');
 			$fail = true;
 		}
-		catch (Exception $e)
+		catch (InvalidArgumentException $e)
 		{
 			$fail = false;
 		}

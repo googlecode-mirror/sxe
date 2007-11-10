@@ -129,14 +129,13 @@ class SXE_TestCase_deleteNodes extends PHPUnit_Framework_TestCase
 	public function testInvalidArgumentType()
 	{
 		$root = new SXE('<root />');
-		$new = new SXE('<new />');
 
 		try
 		{
-			$root->deleteNodes(false, $new);
+			$root->deleteNodes(false);
 			$fail = true;
 		}
-		catch (Exception $e)
+		catch (InvalidArgumentException $e)
 		{
 			$fail = false;
 		}

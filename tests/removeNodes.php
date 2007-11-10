@@ -140,7 +140,7 @@ class SXE_TestCase_removeNodes extends PHPUnit_Framework_TestCase
 			$root->removeNodes(false);
 			$fail = true;
 		}
-		catch (Exception $e)
+		catch (InvalidArgumentException $e)
 		{
 			$fail = false;
 		}

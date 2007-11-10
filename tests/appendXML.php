@@ -68,7 +68,7 @@ class SXE_TestCase_appendXML extends PHPUnit_Framework_TestCase
 			$root->appendXML(false);
 			$fail = true;
 		}
-		catch (Exception $e)
+		catch (InvalidArgumentException $e)
 		{
 			$fail = false;
 		}

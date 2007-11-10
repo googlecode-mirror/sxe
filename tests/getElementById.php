@@ -108,7 +108,7 @@ class SXE_TestCase_getElementById extends PHPUnit_Framework_TestCase
 			$root->getElementById(false);
 			$fail = true;
 		}
-		catch (Exception $e)
+		catch (InvalidArgumentException $e)
 		{
 			$fail = false;
 		}

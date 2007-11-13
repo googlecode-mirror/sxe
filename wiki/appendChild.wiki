@@ -2,7 +2,7 @@
 
 ===== =====
 ==Description==
-*appendChild* ( _SimpleXMLElement_ $new )
+_SXE_ *appendChild* ( _SimpleXMLElement_ $new )
 
 This function appends a child to an existing list of children or creates a new list of children.
 ===== =====
@@ -34,5 +34,5 @@ $root->appendChild($new);
 echo $root->asXML();
 }}}
 ===== =====
-==See also==
+==DOM==
 [http://php.net/manual/function.dom-domnode-appendchild.php DOMNode->appendChild()]

@@ -5,20 +5,23 @@
 _SXE_ *appendChild* ( _SimpleXMLElement_ $new )
 
 This function appends a child to an existing list of children or creates a new list of children.
-===== =====
 
+===== =====
 ==Parameters==
 
 _new_
 
  The appended child
+
 ===== =====
 ==Return Values==
 
 The node added.
+
 ===== =====
 ==Errors/Exceptions==
 This function throws [http://php.net/manual/ref.dom.php#dom.class.domexception DOMException]
+
 ===== =====
 ==Example==
 
@@ -33,6 +36,7 @@ $new = new SXE('<grandchild />');
 $root->appendChild($new);
 echo $root->asXML();
 }}}
+
 ===== =====
 ==DOM==
 [http://php.net/manual/function.dom-domnode-appendchild.php DOMNode->appendChild()]

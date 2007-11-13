@@ -1,9 +1,9 @@
-#summary One-sentence summary of this page.
+#summary Adds a child at the end of current node's children
 
 ==Description==
 *appendChild* ( _SimpleXMLElement_ $new )
 
-Adds a new child at the end of current node's children
+This function appends a child to an existing list of children or creates a new list of children.
 ===== =====
 
 ==Parameters==

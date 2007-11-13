@@ -1,0 +1,48 @@
+#summary Adds a new child before a reference node
+
+===== =====
+==Description==
+_SXE_ *insertBefore* ( _SimpleXMLElement_ $new [, _SimpleXMLElement_ $ref] )
+
+This function inserts a child right before a reference node.
+
+===== =====
+==Parameters==
+
+_new_
+ The new node
+
+_ref_
+ The reference node. If not supplied, _newnode_ is appended to the children
+
+===== =====
+==Return Values==
+
+The inserted node.
+
+===== =====
+==Errors/Exceptions==
+This function throws [http://php.net/manual/ref.dom.php#dom.class.domexception DOMException]
+
+===== =====
+==Example==
+
+{{{
+$root = new SXE(
+	'<root>
+		<child />
+	</root>'
+);
+$new = new SXE('<grandchild />');
+
+$root->insertBefore($new, $root->child);
+echo $root->asXML();
+}}}
+
+===== =====
+==See also==
+[appendChild SXE->appendChild()]
+
+===== =====
+==DOM==
+[http://php.net/manual/function.dom-domnode-insertbefore.php DOMNode->insertBefore()]

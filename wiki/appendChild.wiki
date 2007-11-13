@@ -1,5 +1,6 @@
 #summary Adds a child at the end of current node's children
 
+===== =====
 ==Description==
 *appendChild* ( _SimpleXMLElement_ $new )
 

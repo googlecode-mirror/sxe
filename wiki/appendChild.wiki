@@ -1,0 +1,27 @@
+#summary One-sentence summary of this page.
+
+==Description==
+*appendChild* ( _SimpleXMLElement_ $new )
+
+Adds a new child at the end of current node's children
+===== =====
+
+==Parameters==
+
+_new_
+
+ The appended child
+===== =====
+==Return Values==
+
+The node added.
+===== =====
+==Errors/Exceptions==
+This function throws [http://php.net/manual/ref.dom.php#dom.class.domexception DOMException]
+===== =====
+==Examples==
+
+The following example will add a new element node to a fresh document.
+===== =====
+==See also==
+[http://php.net/manual/function.dom-domnode-appendchild.php DOMNode->appendChild()]

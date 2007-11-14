@@ -29,20 +29,26 @@ This function throws [http://php.net/manual/ref.dom.php#dom.class.domexception D
 
 {{{
 $root = new SXE(
-	'<root>
-		<child />
-	</root>'
+'<root>
+	<child />
+</root>'
 );
-$new = new SXE('<grandchild />');
+$new = new SXE('<firstchild />');
 
 $root->insertBefore($new, $root->child);
 echo $root->asXML();
+}}}
+will output
+{{{
+<root>
+	<firstchild />
+	<child />
+</root>
 }}}
 
 ===== =====
 ==See also==
 [appendChild SXE->appendChild()]
 
-===== =====
 ==DOM==
 [http://php.net/manual/function.dom-domnode-insertbefore.php DOMNode->insertBefore()]

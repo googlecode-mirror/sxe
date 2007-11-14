@@ -27,16 +27,24 @@ This function throws [http://php.net/manual/ref.dom.php#dom.class.domexception D
 
 {{{
 $root = new SXE(
-	'<root>
-		<child />
-	</root>'
+'<root>
+	<child />
+</root>'
 );
 $new = new SXE('<grandchild />');
 
-$root->appendChild($new);
+$root->child->appendChild($new);
 echo $root->asXML();
+}}}
+will output
+{{{
+<root>
+	<child><grandchild /></child>
+</root>
 }}}
 
 ===== =====
+==See also==
+[http://php.net/manual/function.simplexml-element-addChild.php SimpleXMLElement->addChild()]
 ==DOM==
 [http://php.net/manual/function.dom-domnode-appendchild.php DOMNode->appendChild()]

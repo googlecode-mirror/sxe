@@ -26,66 +26,58 @@ THE SOFTWARE.
 require_once 'PHPUnit/Framework.php';
 require_once dirname(__FILE__) . '/../sxe.php';
  
-class SXE_TestCase_insertBeforeCurrent extends PHPUnit_Framework_TestCase
+class SXE_TestCase_insertAfterSelf extends PHPUnit_Framework_TestCase
 {
-	public function testBeforeFirstChild()
+	public function testAfterFirstChild()
 	{
 		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
 		$new = new SXE('<new />');
 
-		$root->child1->insertBeforeCurrent($new);
+		$return = $root->child1->insertAfterSelf($new);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><new /><child1 /><child2 /><child3 /></root>');
+		$this->assertXmlStringEqualsXmlString('<root><child1 /><new /><child2 /><child3 /></root>', $root->asXML());
+		$this->assertSame(
+			dom_import_simplexml($root->new),
+			dom_import_simplexml($return)
+		);
 	}
 
-	public function testBeforeMiddleChild()
+	public function testAfterMiddleChild()
 	{
 		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
 		$new = new SXE('<new />');
 
-		$root->child2->insertBeforeCurrent($new);
+		$return = $root->child2->insertAfterSelf($new);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child1 /><new /><child2 /><child3 /></root>');
+		$this->assertXmlStringEqualsXmlString('<root><child1 /><child2 /><new /><child3 /></root>', $root->asXML());
+		$this->assertSame(
+			dom_import_simplexml($root->new),
+			dom_import_simplexml($return)
+		);
 	}
 
-	public function testBeforeLastChild()
+	public function testAfterLastChild()
 	{
 		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
 		$new = new SXE('<new />');
 
-		$root->child3->insertBeforeCurrent($new);
+		$return = $root->child3->insertAfterSelf($new);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child1 /><child2 /><new /><child3 /></root>');
+		$this->assertXmlStringEqualsXmlString('<root><child1 /><child2 /><child3 /><new /></root>', $root->asXML());
+		$this->assertSame(
+			dom_import_simplexml($root->new),
+			dom_import_simplexml($return)
+		);
 	}
 
-	public function testReturn()
-	{
-		$root = new SXE('<root><child /></root>');
-		$new = new SXE('<new />');
-
-		$return = $root->child->insertBeforeCurrent($new);
-
-		$this->assertTrue($return instanceof SXE);
-		$this->assertXmlStringEqualsXmlString($return->asXML(), $new->asXML());
-	}
-
+	/**
+	* @expectedException BadMethodCallException
+	*/
 	public function testRoot()
 	{
 		$root = new SXE('<root />');
 		$new = new SXE('<new />');
 
-		try
-		{
-			$root->insertBeforeCurrent($new);
-		}
-		catch (Exception $e)
-		{
-			/**
-			* Success!
-			*/
-			return;
-		}
-
-		self::fail();
+		$root->insertAfterSelf($new);
 	}
 }

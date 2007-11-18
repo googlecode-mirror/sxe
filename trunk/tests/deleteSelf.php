@@ -26,32 +26,41 @@ THE SOFTWARE.
 require_once 'PHPUnit/Framework.php';
 require_once dirname(__FILE__) . '/../sxe.php';
  
-class SXE_TestCase_delete extends PHPUnit_Framework_TestCase
+class SXE_TestCase_deleteSelf extends PHPUnit_Framework_TestCase
 {
 	public function testDeleteChild()
 	{
 		$root = new SXE('<root><child><grandchild /></child></root>');
 
-		$root->child->delete();
+		$root->child->deleteSelf();
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root />');
+		$this->assertXmlStringEqualsXmlString('<root />', $root->asXML());
 	}
 
 	public function testDeleteGrandchild()
 	{
 		$root = new SXE('<root><child><grandchild /></child></root>');
 
-		$root->child->grandchild->delete();
+		$root->child->grandchild->deleteSelf();
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child /></root>');
+		$this->assertXmlStringEqualsXmlString('<root><child /></root>', $root->asXML());
 	}
 
 	public function testReturn()
 	{
 		$root = new SXE('<root><child /></root>');
 
-		$return = $root->child->delete();
+		$return = $root->child->deleteSelf();
 
 		$this->assertTrue($return);
+	}
+
+	/**
+	* @expectedException BadMethodCallException
+	*/
+	public function testRoot()
+	{
+		$root = new SXE('<root><child /></root>');
+		$root->deleteSelf();
 	}
 }

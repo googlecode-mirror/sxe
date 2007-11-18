@@ -40,11 +40,13 @@ class SXE_TestCase_getElementById extends PHPUnit_Framework_TestCase
 			</root>'
 		);
 
-		$expected_return = clone $root->child2;
 		$return = $root->getElementById('bar');
 
 		$this->assertTrue($return instanceof SXE);
-		$this->assertXmlStringEqualsXmlString($return->asXML(), $expected_return->asXML());
+		$this->assertSame(
+			dom_import_simplexml($root->child2),
+			dom_import_simplexml($return)
+		);
 	}
 
 	public function testGrandchild()
@@ -59,11 +61,13 @@ class SXE_TestCase_getElementById extends PHPUnit_Framework_TestCase
 			</root>'
 		);
 
-		$expected_return = clone $root->child3->grandchild;
 		$return = $root->getElementById('quux');
 
 		$this->assertTrue($return instanceof SXE);
-		$this->assertXmlStringEqualsXmlString($return->asXML(), $expected_return->asXML());
+		$this->assertSame(
+			dom_import_simplexml($root->child3->grandchild),
+			dom_import_simplexml($return)
+		);
 	}
 
 	public function testNotFound()
@@ -92,30 +96,21 @@ class SXE_TestCase_getElementById extends PHPUnit_Framework_TestCase
 			</root>'
 		);
 
-		$expected_return = clone $root->child1;
 		$return = $root->getElementById('foo');
 
 		$this->assertTrue($return instanceof SXE);
-		$this->assertXmlStringEqualsXmlString($return->asXML(), $expected_return->asXML());
+		$this->assertSame(
+			dom_import_simplexml($root->child1),
+			dom_import_simplexml($return)
+		);
 	}
 
+	/**
+	* @expectedException InvalidArgumentException
+	*/
 	public function testInvalidArgumentType()
 	{
 		$root = new SXE('<root />');
-
-		try
-		{
-			$root->getElementById(false);
-			$fail = true;
-		}
-		catch (InvalidArgumentException $e)
-		{
-			$fail = false;
-		}
-
-		if ($fail)
-		{
-			self::fail();
-		}
+		$root->getElementById(false);
 	}
 }

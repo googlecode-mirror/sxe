@@ -43,28 +43,24 @@ class SXE_TestCase_previousSibling extends PHPUnit_Framework_TestCase
 	public function testMiddleChild()
 	{
 		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
+		$child1 = $root->child2->previousSibling();
 
-		$this->assertXmlStringEqualsXmlString(
-			$root->child2->previousSibling()->asXML(),
-			$root->child1->asXML()
+		$this->assertTrue($child1 instanceof SXE);
+		$this->assertSame(
+			dom_import_simplexml($root->child1),
+			dom_import_simplexml($child1)
 		);
 	}
 
 	public function testLastChild()
 	{
 		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
+		$child2 = $root->child3->previousSibling();
 
-		$this->assertXmlStringEqualsXmlString(
-			$root->child3->previousSibling()->asXML(),
-			$root->child2->asXML()
+		$this->assertTrue($child2 instanceof SXE);
+		$this->assertSame(
+			dom_import_simplexml($root->child2),
+			dom_import_simplexml($child2)
 		);
-	}
-
-	public function testReturn()
-	{
-		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
-		$child1 = $root->child2->previousSibling();
-
-		$this->assertTrue($child1 instanceof SXE);
 	}
 }

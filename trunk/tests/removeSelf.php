@@ -26,34 +26,38 @@ THE SOFTWARE.
 require_once 'PHPUnit/Framework.php';
 require_once dirname(__FILE__) . '/../sxe.php';
  
-class SXE_TestCase_remove extends PHPUnit_Framework_TestCase
+class SXE_TestCase_removeSelf extends PHPUnit_Framework_TestCase
 {
 	public function testRemoveChild()
 	{
 		$root = new SXE('<root><child><grandchild /></child></root>');
 
-		$root->child->remove();
+		$expected_return = clone $root->child;
+		$return = $root->child->removeSelf();
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root />');
+		$this->assertXmlStringEqualsXmlString('<root />', $root->asXML());
+		$this->assertTrue($return instanceof SXE);
+		$this->assertEquals($expected_return, $return);
 	}
 
 	public function testRemoveGrandchild()
 	{
 		$root = new SXE('<root><child><grandchild /></child></root>');
 
-		$root->child->grandchild->remove();
+		$expected_return = clone $root->child->grandchild;
+		$return = $root->child->grandchild->removeSelf();
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child /></root>');
+		$this->assertXmlStringEqualsXmlString('<root><child /></root>', $root->asXML());
+		$this->assertTrue($return instanceof SXE);
+		$this->assertEquals($expected_return, $return);
 	}
 
-	public function testReturn()
+	/**
+	* @expectedException BadMethodCallException
+	*/
+	public function testRoot()
 	{
-		$root = new SXE('<root><child /></root>');
-
-		$expected_return = clone $root->child;
-		$return = $root->child->remove();
-
-		$this->assertTrue($return instanceof SXE);
-		$this->assertXmlStringEqualsXmlString($return->asXML(), $expected_return->asXML());
+		$root = new SXE('<root />');
+		$root->removeSelf();
 	}
 }

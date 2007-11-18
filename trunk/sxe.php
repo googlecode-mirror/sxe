@@ -3,29 +3,34 @@
 
 Copyright 2007 The SXE Working Group Initiative
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-You should have received a copy of the GNU Lesser General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 
 */
 class SXE extends SimpleXMLElement
 {
 	/**
-	* Add new child at the end of the children
+	* Add a new child at the end of the children
 	*
 	* @see http://php.net/manual/function.dom-domnode-appendchild.php
 	*
 	* @param	SimpleXMLElement	$new	New node
-	* @return	SXE							The inserted node on success or FALSE on failure
+	* @return	SXE							The inserted node
 	*/
 	public function appendChild(SimpleXMLElement $new)
 	{
@@ -43,7 +48,7 @@ class SXE extends SimpleXMLElement
 	*
 	* @param	SimpleXMLElement	$new	New node
 	* @param	SimpleXMLElement	$ref	Reference node
-	* @return	SXE							The inserted node on success or FALSE on failure
+	* @return	SXE							The inserted node
 	*/
 	public function insertBefore(SimpleXMLElement $new, SimpleXMLElement $ref = null)
 	{
@@ -53,6 +58,12 @@ class SXE extends SimpleXMLElement
 		if (isset($ref))
 		{
 			$ref = dom_import_simplexml($ref);
+
+			if ($ref->ownerDocument !== $tmp->ownerDocument)
+			{
+				throw new DOMException('The reference node does not come from the same document as the context node', DOM_WRONG_DOCUMENT_ERR);
+			}
+
 			$node = $tmp->insertBefore($new, $ref);
 		}
 		else
@@ -70,15 +81,21 @@ class SXE extends SimpleXMLElement
 	*
 	* @param	SimpleXMLElement	$new	New node
 	* @param	SimpleXMLElement	$old	Old node
-	* @return	SXE							The replaced node on success or FALSE on failure
+	* @return	SXE							The replaced node
 	*/
 	public function replaceChild(SimpleXMLElement $new, SimpleXMLElement $old)
 	{
 		$tmp = dom_import_simplexml($this);
 		$old = dom_import_simplexml($old);
-		$new = $tmp->ownerDocument->importNode(dom_import_simplexml($new), true);
 
+		if ($old->ownerDocument !== $tmp->ownerDocument)
+		{
+			throw new DOMException('The reference node does not come from the same document as the context node', DOM_WRONG_DOCUMENT_ERR);
+		}
+
+		$new = $tmp->ownerDocument->importNode(dom_import_simplexml($new), true);
 		$node = $tmp->replaceChild($new, $old);
+
 		return simplexml_import_dom($node, get_class($this));
 	}
 
@@ -88,12 +105,17 @@ class SXE extends SimpleXMLElement
 	* @see http://php.net/manual/function.dom-domnode-removechild.php
 	*
 	* @param	SimpleXMLElement	$old	Old node
-	* @return	SXE							The removed node on success or FALSE on failure
+	* @return	SXE							The removed node
 	*/
 	public function removeChild(SimpleXMLElement $old)
 	{
 		$tmp = dom_import_simplexml($this);
 		$old = dom_import_simplexml($old);
+
+		if ($old->ownerDocument !== $tmp->ownerDocument)
+		{
+			throw new DOMException('The reference node does not come from the same document as the context node', DOM_WRONG_DOCUMENT_ERR);
+		}
 
 		$node = $tmp->removeChild($old);
 		return simplexml_import_dom($node, get_class($this));
@@ -102,10 +124,13 @@ class SXE extends SimpleXMLElement
 	/**
 	* Append raw XML data
 	*
+	* NOTE: if you append a text node, then its closest ancestor that isn't a text node
+	*       will be returned instead
+	*
 	* @see http://php.net/manual/function.dom-domdocumentfragment-appendxml.php
 	*
 	* @param	string	$xml	XML to append
-	* @return	SXE				The appended node on success or FALSE on failure
+	* @return	SXE				The appended node
 	*/
 	public function appendXML($xml)
 	{
@@ -117,13 +142,69 @@ class SXE extends SimpleXMLElement
 		$tmp = dom_import_simplexml($this);
 		$fragment = $tmp->ownerDocument->createDocumentFragment();
 
+		/**
+		* Disable error reporting
+		*/
+		$error_reporting = error_reporting();
+		error_reporting(0);
+
 		if (!$fragment->appendXML($xml))
 		{
-			return false;
+			/**
+			* Could not append that XML... but why? We are going to check whether
+			* the XML is valid.
+			*/
+			try
+			{
+				new SimpleXMLElement($xml);
+				$exception = new UnexpectedValueException('DOM could not append XML (reason unknown)');
+			}
+			catch (Exception $e)
+			{
+				$exception = new InvalidArgumentException($e->getMessage());
+			}
+
+			error_reporting($error_reporting);
+			throw $exception;
 		}
 
 		$node = $tmp->appendChild($fragment);
+
+		/**
+		* Restore error reporting
+		*/
+		error_reporting($error_reporting);
+
+		/**
+		* SimpleXML can't handle text nodes, therefore we return the closest parent
+		* that isn't a text node
+		*/
+		while ($node instanceof DOMText)
+		{
+			$node = $node->parentNode;
+		}
+
 		return simplexml_import_dom($node, get_class($this));
+	}
+
+	/**
+	* Append text data at the end of the children
+	*
+	* @param	string	$xml	Text to append
+	* @return	SXE				The context node
+	*/
+	public function appendText($text)
+	{
+		if (!is_string($text))
+		{
+			throw new InvalidArgumentException('Argument 1 passed to appendText() must be a string, ' . gettype($xml) . ' given');
+		}
+
+		$tmp = dom_import_simplexml($this);
+		$doc = $tmp->ownerDocument;
+		$node = $tmp->appendChild($doc->importNode($doc->createTextNode($text)));
+
+		return $this;
 	}
 
 	/**
@@ -133,7 +214,7 @@ class SXE extends SimpleXMLElement
 	* Also, this method does NOT check whether the given ID would be valid value.
 	*
 	* @param	string	$id		Element ID
-	* @return	SXE				The node on success, or FALSE otherwise
+	* @return	SXE				The node if found, FALSE otherwise
 	*/
 	public function getElementById($id)
 	{
@@ -174,9 +255,9 @@ class SXE extends SimpleXMLElement
 	}
 
 	/**
-	* Return current node's parent
+	* Return this node's parent
 	*
-	* @return	SXE				Parent node if applicable, or current node otherwise
+	* @return	SXE				Parent node if applicable, or this node otherwise
 	*/
 	public function parentNode()
 	{
@@ -273,20 +354,25 @@ class SXE extends SimpleXMLElement
 			throw new InvalidArgumentException('Argument 1 passed to removeNodes() must be a string, ' . gettype($xpath) . ' given');
 		}
 
-		$nodes = $this->xpath($xpath);
+		$nodes = $this->_xpath($xpath);
 
-		if ($nodes === false)
+		if (isset($nodes[0]))
 		{
-			return false;
+			$tmp = dom_import_simplexml($nodes[0]);
+
+			if ($tmp === $tmp->ownerDocument->documentElement)
+			{
+				unset($nodes[0]);
+			}
 		}
 
-		$ret = array();
+		$return = array();
 		foreach ($nodes as $node)
 		{
-			$ret[] = $node->remove();
+			$return[] = $node->removeSelf();
 		}
 
-		return $ret;
+		return $return;
 	}
 
 	/**
@@ -300,23 +386,16 @@ class SXE extends SimpleXMLElement
 	{
 		if (!is_string($xpath))
 		{
-			throw new InvalidArgumentException('Argument 1 passed to deleteNodes() must be a string, ' . gettype($xpath) . ' given');
+			throw new InvalidArgumentException('Argument 1 passed to replaceNodes() must be a string, ' . gettype($xpath) . ' given');
 		}
 
-		$nodes = $this->xpath($xpath);
-
-		if ($nodes === false)
+		$nodes = array();
+		foreach ($this->_xpath($xpath) as $node)
 		{
-			return false;
+			$nodes[] = $node->replaceSelf($new);
 		}
 
-		$ret = array();
-		foreach ($nodes as $node)
-		{
-			$ret[] = $node->replace($new);
-		}
-
-		return $ret;
+		return $nodes;
 	}
 
 	/**
@@ -332,41 +411,51 @@ class SXE extends SimpleXMLElement
 			throw new InvalidArgumentException('Argument 1 passed to deleteNodes() must be a string, ' . gettype($xpath) . ' given');
 		}
 
-		$cnt = 0;
-		if ($nodes = $this->xpath($xpath))
+		$nodes = $this->_xpath($xpath);
+
+		if (isset($nodes[0]))
 		{
-			foreach ($nodes as $node)
+			$tmp = dom_import_simplexml($nodes[0]);
+
+			if ($tmp === $tmp->ownerDocument->documentElement)
 			{
-				if ($node->delete())
-				{
-					++$cnt;
-				}
+				unset($nodes[0]);
 			}
 		}
 
-		return $cnt;
+		foreach ($nodes as $node)
+		{
+			$node->deleteSelf();
+		}
+
+		return count($nodes);
 	}
 
 	/**
-	* Remove current node from document
+	* Remove this node from document
 	*
-	* @return	SXE				Removed node on success or FALSE on failure
+	* @return	SXE				The removed node
 	*/
-	public function remove()
+	public function removeSelf()
 	{
 		$tmp = dom_import_simplexml($this);
+
+		if ($tmp === $tmp->ownerDocument->documentElement)
+		{
+			throw new BadMethodCallException('SXE->removeSelf() cannot be used to remove the root node');
+		}
 
 		$node = $tmp->parentNode->removeChild($tmp);
 		return simplexml_import_dom($node, get_class($this));
 	}
 
 	/**
-	* Replace current node
+	* Replace this node
 	*
 	* @param	SimpleXMLElement	$new	New node
-	* @return	SXE							Replaced node on success or FALSE on failure
+	* @return	SXE							Replaced node on success
 	*/
-	public function replace(SimpleXMLElement $new)
+	public function replaceSelf(SimpleXMLElement $new)
 	{
 		$old = dom_import_simplexml($this);
 		$new = $old->ownerDocument->importNode(dom_import_simplexml($new), true);
@@ -376,23 +465,29 @@ class SXE extends SimpleXMLElement
 	}
 
 	/**
-	* Delete current node from document
+	* Delete this node from document
 	*
 	* @return	bool						TRUE on success, FALSE otherwise
 	*/
-	public function delete()
+	public function deleteSelf()
 	{
 		$tmp = dom_import_simplexml($this);
-		return (bool) ($tmp->parentNode->removeChild($tmp));
+
+		if ($tmp === $tmp->ownerDocument->documentElement)
+		{
+			throw new BadMethodCallException('SXE->deleteSelf() cannot be used to delete the root node');
+		}
+
+		return (bool) $tmp->parentNode->removeChild($tmp);
 	}
 
 	/**
-	* Add a new sibling before the current node
+	* Add a new sibling before this node
 	*
 	* @param	SimpleXMLElement	$new	New node
-	* @return	SXE							The inserted node on success or FALSE on failure
+	* @return	SXE							The inserted node
 	*/
-	public function insertBeforeCurrent(SimpleXMLElement $new)
+	public function insertBeforeSelf(SimpleXMLElement $new)
 	{
 		$tmp = dom_import_simplexml($this);
 		$new = $tmp->ownerDocument->importNode(dom_import_simplexml($new), true);
@@ -400,9 +495,9 @@ class SXE extends SimpleXMLElement
 		/**
 		* We don't want to insert anything before the root node
 		*/
-		if (!$tmp->parentNode instanceof DOMElement)
+		if ($tmp === $tmp->ownerDocument->documentElement)
 		{
-			throw new Exception('Cannot insert nodes outside of root node');
+			throw new BadMethodCallException('SXE->insertBeforeSelf() cannot be used to insert nodes outside of the root node');
 		}
 
 		$node = $tmp->parentNode->insertBefore($new, $tmp);
@@ -410,12 +505,12 @@ class SXE extends SimpleXMLElement
 	}
 
 	/**
-	* Add a new sibling after the current node
+	* Add a new sibling after this node
 	*
 	* @param	SimpleXMLElement	$new	New node
-	* @return	SXE							The inserted node on success or FALSE on failure
+	* @return	SXE							The inserted node
 	*/
-	public function insertAfterCurrent(SimpleXMLElement $new)
+	public function insertAfterSelf(SimpleXMLElement $new)
 	{
 		$tmp = dom_import_simplexml($this);
 		$new = $tmp->ownerDocument->importNode(dom_import_simplexml($new), true);
@@ -423,9 +518,9 @@ class SXE extends SimpleXMLElement
 		/**
 		* We don't want to insert anything after the root node
 		*/
-		if (!$tmp->parentNode instanceof DOMElement)
+		if ($tmp === $tmp->ownerDocument->documentElement)
 		{
-			throw new Exception('Cannot insert nodes outside of root node');
+			throw new BadMethodCallException('SXE->insertAfterSelf() cannot be used to insert nodes outside of the root node');
 		}
 
 		if (isset($tmp->nextSibling))
@@ -443,7 +538,7 @@ class SXE extends SimpleXMLElement
 	/**
 	* Add a Processing Instruction at the top of the document
 	*
-	* Processing Instructions are inserted in order right before the root node.
+	* Processing Instructions are inserted in order, right before the root node.
 	* The content of the PI can be passed either as string or as an associative array.
 	*
 	* @param	string			$target		Target of the processing instruction
@@ -490,5 +585,33 @@ class SXE extends SimpleXMLElement
 		}
 
 		return (bool) $doc->insertBefore($pi, $doc->lastChild);
+	}
+
+	/**
+	* 
+	*
+	* @return	void
+	*/
+	protected function _xpath($xpath)
+	{
+		if (!libxml_use_internal_errors())
+		{
+			$restore = true;
+			libxml_use_internal_errors(true);
+		}
+
+		$nodes = $this->xpath($xpath);
+
+		if (isset($restore))
+		{
+			libxml_use_internal_errors(false);
+		}
+
+		if ($nodes === false)
+		{
+			throw new InvalidArgumentException('Invalid XPath expression ' . $xpath);
+		}
+
+		return $nodes;
 	}
 }

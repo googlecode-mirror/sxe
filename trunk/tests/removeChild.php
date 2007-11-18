@@ -32,11 +32,16 @@ class SXE_TestCase_removeChild extends PHPUnit_Framework_TestCase
 	{
 		$root = new SXE('<root><child><grandchild /></child></root>');
 
-		$root->removeChild($root->child);
+		$expected_return = clone $root->child;
+		$return = $root->removeChild($root->child);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root />');
+		$this->assertXmlStringEqualsXmlString('<root />', $root->asXML());
+		$this->assertEquals($expected_return, $return);
 	}
 
+	/**
+	* @expectedException DOMException
+	*/
 	public function testNotFound()
 	{
 		$root = new SXE('<root><child><grandchild /></child></root>');
@@ -47,27 +52,27 @@ class SXE_TestCase_removeChild extends PHPUnit_Framework_TestCase
 		}
 		catch (DOMException $e)
 		{
-			$this->assertSame($e->code, DOM_NOT_FOUND_ERR);
-		}
-		catch (Exception $e)
-		{
-			self::fail('Unexpected exception thrown: ' . get_class($e) . '(' . $e->getMessage() . ')');
-		}
-
-		if (!isset($e))
-		{
-			self::fail('No exception thrown');
+			$this->assertSame(DOM_NOT_FOUND_ERR, $e->code);
+			throw $e;
 		}
 	}
 
-	public function testReturn()
+	/**
+	* @expectedException DOMException
+	*/
+	public function testWrongDocument()
 	{
-		$root = new SXE('<root><child /></root>');
+		$root = new SXE('<root />');
+		$node = new SXE('<node />');
 
-		$expected_return = clone $root->child;
-		$return = $root->removeChild($root->child);
-
-		$this->assertTrue($return instanceof SXE);
-		$this->assertXmlStringEqualsXmlString($return->asXML(), $expected_return->asXML());
+		try
+		{
+			$root->removeChild($node);
+		}
+		catch (DOMException $e)
+		{
+			$this->assertSame(DOM_WRONG_DOCUMENT_ERR, $e->code);
+			throw $e;
+		}
 	}
 }

@@ -37,19 +37,24 @@ class SXE_TestCase_nextSibling extends PHPUnit_Framework_TestCase
 	public function testFirstChild()
 	{
 		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
-		$this->assertXmlStringEqualsXmlString(
-			$root->child1->nextSibling()->asXML(),
-			$root->child2->asXML()
+		$child2 = $root->child1->nextSibling();
+
+		$this->assertTrue($child2 instanceof SXE);
+		$this->assertSame(
+			dom_import_simplexml($root->child2),
+			dom_import_simplexml($child2)
 		);
 	}
 
 	public function testMiddleChild()
 	{
 		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
+		$child3 = $root->child2->nextSibling();
 
-		$this->assertXmlStringEqualsXmlString(
-			$root->child2->nextSibling()->asXML(),
-			$root->child3->asXML()
+		$this->assertTrue($child3 instanceof SXE);
+		$this->assertSame(
+			dom_import_simplexml($root->child3),
+			dom_import_simplexml($child3)
 		);
 	}
 
@@ -57,13 +62,5 @@ class SXE_TestCase_nextSibling extends PHPUnit_Framework_TestCase
 	{
 		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
 		$this->assertNull($root->child3->nextSibling());
-	}
-
-	public function testReturn()
-	{
-		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
-		$child3 = $root->child2->nextSibling();
-
-		$this->assertTrue($child3 instanceof SXE);
 	}
 }

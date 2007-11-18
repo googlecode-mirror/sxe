@@ -30,45 +30,40 @@ class SXE_TestCase_parentNode extends PHPUnit_Framework_TestCase
 {
 	public function testRoot()
 	{
-		$xml = '<root><child /></root>';
-		$root = new SXE($xml);
+		$root = new SXE('<root><child /></root>');
+		$parent = $root->parentNode();
 
 		/**
 		* When asked for the root node's parent, DOM returns the root node itself
 		*/
-		$this->assertXmlStringEqualsXmlString(
-			$root->parentNode()->asXML(),
-			$xml
+		$this->assertTrue($parent instanceof SXE);
+		$this->assertSame(
+			dom_import_simplexml($root),
+			dom_import_simplexml($parent)
 		);
 	}
 
 	public function testChild()
 	{
-		$xml = '<root><child /></root>';
-		$root = new SXE($xml);
+		$root = new SXE('<root><child /></root>');
+		$parent = $root->child->parentNode();
 
-		$this->assertXmlStringEqualsXmlString(
-			$root->parentNode()->asXML(),
-			$xml
+		$this->assertTrue($parent instanceof SXE);
+		$this->assertSame(
+			dom_import_simplexml($root),
+			dom_import_simplexml($parent)
 		);
 	}
 
 	public function testGrandchild()
 	{
-		$xml = '<root><child><grandchild /></child></root>';
-		$root = new SXE($xml);
+		$root = new SXE('<root><child><grandchild /></child></root>');
+		$parent = $root->child->grandchild->parentNode();
 
-		$this->assertXmlStringEqualsXmlString(
-			$root->child->grandchild->parentNode()->asXML(),
-			$root->child->asXML()
+		$this->assertTrue($parent instanceof SXE);
+		$this->assertSame(
+			dom_import_simplexml($root->child),
+			dom_import_simplexml($parent)
 		);
-	}
-
-	public function testReturn()
-	{
-		$xml = '<root><child /></root>';
-		$root = new SXE($xml);
-
-		$this->assertTrue($root->child->parentNode() instanceof SXE);
 	}
 }

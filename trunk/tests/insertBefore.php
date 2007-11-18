@@ -33,9 +33,13 @@ class SXE_TestCase_insertBefore extends PHPUnit_Framework_TestCase
 		$root = new SXE('<root><child /></root>');
 		$new = new SXE('<new />');
 
-		$root->insertBefore($new, $root->child);
+		$return = $root->insertBefore($new, $root->child);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><new /><child /></root>');
+		$this->assertXmlStringEqualsXmlString('<root><new /><child /></root>', $root->asXML());
+		$this->assertSame(
+			dom_import_simplexml($root->new),
+			dom_import_simplexml($return)
+		);
 	}
 
 	public function testBeforeLastChild()
@@ -43,11 +47,18 @@ class SXE_TestCase_insertBefore extends PHPUnit_Framework_TestCase
 		$root = new SXE('<root><child /><otherchild /></root>');
 		$new = new SXE('<new />');
 
-		$root->insertBefore($new, $root->otherchild);
+		$return = $root->insertBefore($new, $root->otherchild);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child /><new /><otherchild /></root>');
+		$this->assertXmlStringEqualsXmlString('<root><child /><new /><otherchild /></root>', $root->asXML());
+		$this->assertSame(
+			dom_import_simplexml($root->new),
+			dom_import_simplexml($return)
+		);
 	}
 
+	/**
+	* @expectedException DOMException
+	*/
 	public function testNotFound()
 	{
 		$root = new SXE('<root><child><grandchild /></child></root>');
@@ -59,16 +70,28 @@ class SXE_TestCase_insertBefore extends PHPUnit_Framework_TestCase
 		}
 		catch (DOMException $e)
 		{
-			$this->assertSame($e->code, DOM_NOT_FOUND_ERR);
+			$this->assertSame(DOM_NOT_FOUND_ERR, $e->code);
+			throw $e;
 		}
-		catch (Exception $e)
-		{
-			self::fail('Unexpected exception thrown: ' . get_class($e) . '(' . $e->getMessage() . ')');
-		}
+	}
 
-		if (!isset($e))
+	/**
+	* @expectedException DOMException
+	*/
+	public function testWrongDocument()
+	{
+		$root = new SXE('<root><child><grandchild /></child></root>');
+		$new = new SXE('<new />');
+		$node = new SXE('<node />');
+
+		try
 		{
-			self::fail('No exception thrown');
+			$root->insertBefore($new, $node);
+		}
+		catch (DOMException $e)
+		{
+			$this->assertSame(DOM_WRONG_DOCUMENT_ERR, $e->code);
+			throw $e;
 		}
 	}
 
@@ -77,19 +100,12 @@ class SXE_TestCase_insertBefore extends PHPUnit_Framework_TestCase
 		$root = new SXE('<root><child /></root>');
 		$new = new SXE('<new />');
 
-		$root->insertBefore($new);
+		$return = $root->insertBefore($new);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child /><new /></root>');
-	}
-
-	public function testReturn()
-	{
-		$root = new SXE('<root><child /></root>');
-		$new = new SXE('<new />');
-
-		$return = $root->insertBefore($new, $root->child);
-
-		$this->assertTrue($return instanceof SXE);
-		$this->assertXmlStringEqualsXmlString($return->asXML(), $new->asXML());
+		$this->assertXmlStringEqualsXmlString('<root><child /><new /></root>', $root->asXML());
+		$this->assertSame(
+			dom_import_simplexml($root->new),
+			dom_import_simplexml($return)
+		);
 	}
 }

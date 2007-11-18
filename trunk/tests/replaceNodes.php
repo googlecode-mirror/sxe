@@ -65,7 +65,7 @@ class SXE_TestCase_replaceNodes extends PHPUnit_Framework_TestCase
 
 		$return = $root->replaceNodes($xpath, $new);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), $expected_result->asXML());
+		$this->assertEquals($root, $expected_result);
 		$this->assertEquals($return, $expected_return);
 	}
 
@@ -109,7 +109,7 @@ class SXE_TestCase_replaceNodes extends PHPUnit_Framework_TestCase
 
 		$return = $root->child3->replaceNodes($xpath, $new);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), $expected_result->asXML());
+		$this->assertEquals($root, $expected_result);
 		$this->assertEquals($return, $expected_return);
 	}
 
@@ -138,49 +138,45 @@ class SXE_TestCase_replaceNodes extends PHPUnit_Framework_TestCase
 
 		$return = $root->child3->replaceNodes($xpath, $new);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), $expected_result->asXML());
+		$this->assertEquals($root, $expected_result);
 		$this->assertEquals($return, $expected_return);
 	}
 
+	public function testRoot()
+	{
+		$root = new SXE('<root />');
+		$new = new SXE('<new />');
+
+		$expected_result = clone $new;
+		$expected_return = array(
+			clone $root
+		);
+
+		$return = $root->replaceNodes('/root', $new);
+		
+		$this->assertEquals($root, $expected_result);
+		$this->assertEquals($return, $expected_return);
+	}
+
+	/**
+	* @expectedException InvalidArgumentException
+	*/
 	public function testInvalidArgumentType()
 	{
 		$root = new SXE('<root />');
 		$new = new SXE('<new />');
 
-		try
-		{
-			$root->replaceNodes(false, $new);
-			$fail = true;
-		}
-		catch (InvalidArgumentException $e)
-		{
-			$fail = false;
-		}
-
-		if ($fail)
-		{
-			self::fail();
-		}
+		$root->replaceNodes(false, $new);
 	}
 
+	/**
+	* @expectedException InvalidArgumentException
+	*/
 	public function testInvalidXPath()
 	{
 		$root = new SXE('<root />');
 		$new = new SXE('<new />');
 
-		if (!libxml_use_internal_errors())
-		{
-			$restore = true;
-			libxml_use_internal_errors(true);
-		}
-
-		$return = $root->replaceNodes('????', $new);
-
-		if (isset($restore))
-		{
-			libxml_use_internal_errors(false);
-		}
-
-		$this->assertFalse($return);
+		$root->replaceNodes('????', $new);
 	}
 }

@@ -33,7 +33,7 @@ class SXE_TestCase_removeNodes extends PHPUnit_Framework_TestCase
 		$xpath = '//*[@remove="1"]';
 
 		$root = new SXE(
-			'<root>
+			'<root remove="1">
 				<child1 remove="1" />
 				<child2 remove="0" />
 				<child3>
@@ -45,7 +45,7 @@ class SXE_TestCase_removeNodes extends PHPUnit_Framework_TestCase
 		);
 
 		$expected_result = new SXE(
-			'<root>
+			'<root remove="1">
 				<child2 remove="0" />
 				<child3 />
 			</root>',
@@ -60,8 +60,8 @@ class SXE_TestCase_removeNodes extends PHPUnit_Framework_TestCase
 
 		$return = $root->removeNodes($xpath);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), $expected_result->asXML());
-		$this->assertEquals($return, $expected_return);
+		$this->assertEquals($expected_result, $root);
+		$this->assertEquals($expected_return, $return);
 	}
 
 	public function testChildContext()
@@ -77,9 +77,7 @@ class SXE_TestCase_removeNodes extends PHPUnit_Framework_TestCase
 						<grandgrandchild remove="1" />
 					</grandchild>
 				</child3>
-			</root>',
-
-			LIBXML_NOBLANKS
+			</root>'
 		);
 
 		$expected_result = new SXE(
@@ -89,9 +87,7 @@ class SXE_TestCase_removeNodes extends PHPUnit_Framework_TestCase
 				<child3>
 					<grandchild />
 				</child3>
-			</root>',
-
-			LIBXML_NOBLANKS
+			</root>'
 		);
 
 		$expected_return = array(
@@ -100,8 +96,8 @@ class SXE_TestCase_removeNodes extends PHPUnit_Framework_TestCase
 
 		$return = $root->child3->removeNodes($xpath);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), $expected_result->asXML());
-		$this->assertEquals($return, $expected_return);
+		$this->assertEquals($expected_result, $root);
+		$this->assertEquals($expected_return, $return);
 	}
 
 	public function testChildContextNoMatches()
@@ -127,47 +123,25 @@ class SXE_TestCase_removeNodes extends PHPUnit_Framework_TestCase
 
 		$return = $root->child3->removeNodes($xpath);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), $expected_result->asXML());
-		$this->assertEquals($return, $expected_return);
+		$this->assertEquals($expected_result, $root);
+		$this->assertEquals($expected_return, $return);
 	}
 
+	/**
+	* @expectedException InvalidArgumentException
+	*/
 	public function testInvalidArgumentType()
 	{
 		$root = new SXE('<root />');
-
-		try
-		{
-			$root->removeNodes(false);
-			$fail = true;
-		}
-		catch (InvalidArgumentException $e)
-		{
-			$fail = false;
-		}
-
-		if ($fail)
-		{
-			self::fail();
-		}
+		$root->removeNodes(false);
 	}
 
+	/**
+	* @expectedException InvalidArgumentException
+	*/
 	public function testInvalidXPath()
 	{
 		$root = new SXE('<root />');
-
-		if (!libxml_use_internal_errors())
-		{
-			$restore = true;
-			libxml_use_internal_errors(true);
-		}
-
-		$return = $root->removeNodes('????');
-
-		if (isset($restore))
-		{
-			libxml_use_internal_errors(false);
-		}
-
-		$this->assertFalse($return);
+		$root->removeNodes('????');
 	}
 }

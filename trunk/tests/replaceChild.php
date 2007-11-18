@@ -33,9 +33,15 @@ class SXE_TestCase_replaceChild extends PHPUnit_Framework_TestCase
 		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
 		$new = new SXE('<new />');
 
-		$root->replaceChild($new, $root->child1);
+		$expected_return = clone $root->child1;
+		$return = $root->replaceChild($new, $root->child1);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><new /><child2 /><child3 /></root>');
+		$this->assertXmlStringEqualsXmlString('<root><new /><child2 /><child3 /></root>', $root->asXML());
+		$this->assertEquals($expected_return, $return);
+		$this->assertNotSame(
+			dom_import_simplexml($return),
+			dom_import_simplexml($new)
+		);
 	}
 
 	public function testReplaceMiddleChild()
@@ -43,9 +49,15 @@ class SXE_TestCase_replaceChild extends PHPUnit_Framework_TestCase
 		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
 		$new = new SXE('<new />');
 
-		$root->replaceChild($new, $root->child2);
+		$expected_return = clone $root->child2;
+		$return = $root->replaceChild($new, $root->child2);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child1 /><new /><child3 /></root>');
+		$this->assertXmlStringEqualsXmlString('<root><child1 /><new /><child3 /></root>', $root->asXML());
+		$this->assertEquals($expected_return, $return);
+		$this->assertNotSame(
+			dom_import_simplexml($return),
+			dom_import_simplexml($new)
+		);
 	}
 
 	public function testReplaceLastChild()
@@ -53,11 +65,20 @@ class SXE_TestCase_replaceChild extends PHPUnit_Framework_TestCase
 		$root = new SXE('<root><child1 /><child2 /><child3 /></root>');
 		$new = new SXE('<new />');
 
-		$root->replaceChild($new, $root->child3);
+		$expected_return = clone $root->child3;
+		$return = $root->replaceChild($new, $root->child3);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child1 /><child2 /><new /></root>');
+		$this->assertXmlStringEqualsXmlString('<root><child1 /><child2 /><new /></root>', $root->asXML());
+		$this->assertEquals($expected_return, $return);
+		$this->assertNotSame(
+			dom_import_simplexml($return),
+			dom_import_simplexml($new)
+		);
 	}
 
+	/**
+	* @expectedException DOMException
+	*/
 	public function testNotFound()
 	{
 		$root = new SXE('<root><child><grandchild /></child></root>');
@@ -69,28 +90,28 @@ class SXE_TestCase_replaceChild extends PHPUnit_Framework_TestCase
 		}
 		catch (DOMException $e)
 		{
-			$this->assertSame($e->code, DOM_NOT_FOUND_ERR);
-		}
-		catch (Exception $e)
-		{
-			self::fail('Unexpected exception thrown: ' . get_class($e) . '(' . $e->getMessage() . ')');
-		}
-
-		if (!isset($e))
-		{
-			self::fail('No exception thrown');
+			$this->assertSame(DOM_NOT_FOUND_ERR, $e->code);
+			throw $e;
 		}
 	}
 
-	public function testReturn()
+	/**
+	* @expectedException DOMException
+	*/
+	public function testWrongDocument()
 	{
-		$root = new SXE('<root><child /></root>');
+		$root = new SXE('<root />');
 		$new = new SXE('<new />');
+		$node = new SXE('<node />');
 
-		$expected_return = clone $root->child;
-		$return = $root->replaceChild($new, $root->child);
-
-		$this->assertTrue($return instanceof SXE);
-		$this->assertXmlStringEqualsXmlString($return->asXML(), $expected_return->asXML());
+		try
+		{
+			$root->replaceChild($new, $node);
+		}
+		catch (DOMException $e)
+		{
+			$this->assertSame(DOM_WRONG_DOCUMENT_ERR, $e->code);
+			throw $e;
+		}
 	}
 }

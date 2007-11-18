@@ -57,8 +57,8 @@ class SXE_TestCase_deleteNodes extends PHPUnit_Framework_TestCase
 
 		$return = $root->deleteNodes($xpath);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), $expected_result->asXML());
-		$this->assertSame($return, $expected_return);
+		$this->assertXmlStringEqualsXmlString($expected_result->asXML(), $root->asXML());
+		$this->assertSame($expected_return, $return);
 	}
 
 	public function testChildContext()
@@ -95,8 +95,8 @@ class SXE_TestCase_deleteNodes extends PHPUnit_Framework_TestCase
 
 		$return = $root->child3->deleteNodes($xpath);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), $expected_result->asXML());
-		$this->assertSame($return, $expected_return);
+		$this->assertXmlStringEqualsXmlString($expected_result->asXML(), $root->asXML());
+		$this->assertSame($expected_return, $return);
 	}
 
 	public function testChildContextNoMatches()
@@ -122,27 +122,25 @@ class SXE_TestCase_deleteNodes extends PHPUnit_Framework_TestCase
 
 		$return = $root->child3->deleteNodes($xpath);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), $expected_result->asXML());
-		$this->assertSame($return, $expected_return);
+		$this->assertXmlStringEqualsXmlString($expected_result->asXML(), $root->asXML());
+		$this->assertSame($expected_return, $return);
 	}
 
+	/**
+	* @expectedException InvalidArgumentException
+	*/
 	public function testInvalidArgumentType()
 	{
 		$root = new SXE('<root />');
+		$root->deleteNodes(false);
+	}
 
-		try
-		{
-			$root->deleteNodes(false);
-			$fail = true;
-		}
-		catch (InvalidArgumentException $e)
-		{
-			$fail = false;
-		}
-
-		if ($fail)
-		{
-			self::fail();
-		}
+	/**
+	* @expectedException InvalidArgumentException
+	*/
+	public function testInvalidXPath()
+	{
+		$root = new SXE('<root />');
+		$root->deleteNodes('????');
 	}
 }

@@ -55,7 +55,10 @@ class SXE_TestCase_appendChild extends PHPUnit_Framework_TestCase
 
 		$return = $root->child->appendChild($new);
 
-		$this->assertTrue($return instanceof SXE);
-		$this->assertXmlStringEqualsXmlString($return->asXML(), $new->asXML());
+		$this->assertEquals($new, $return);
+		$this->assertSame(
+			dom_import_simplexml($root->child->new),
+			dom_import_simplexml($return)
+		);
 	}
 }

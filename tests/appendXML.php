@@ -33,9 +33,10 @@ class SXE_TestCase_appendXML extends PHPUnit_Framework_TestCase
 		$root = new SXE('<root><child /></root>');
 		$new = '<new />';
 
-		$root->appendXML($new);
+		$return = $root->appendXML($new);
 
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child /><new /></root>');
+		$this->assertXmlStringEqualsXmlString('<root><child /><new /></root>', $root->asXML());
+		$this->assertXmlStringEqualsXmlString($new, $return->asXML());
 	}
 
 	public function testGrandchild()
@@ -43,59 +44,40 @@ class SXE_TestCase_appendXML extends PHPUnit_Framework_TestCase
 		$root = new SXE('<root><child /></root>');
 		$new = '<new />';
 
-		$root->child->appendXML($new);
-
-		$this->assertXmlStringEqualsXmlString($root->asXML(), '<root><child><new /></child></root>');
-	}
-
-	public function testReturn()
-	{
-		$root = new SXE('<root><child /></root>');
-		$new = '<new />';
-
 		$return = $root->child->appendXML($new);
 
-		$this->assertTrue($return instanceof SXE);
-		$this->assertXmlStringEqualsXmlString($return->asXML(), $new);
+		$this->assertXmlStringEqualsXmlString('<root><child><new /></child></root>', $root->asXML());
+		$this->assertXmlStringEqualsXmlString($new, $return->asXML());
 	}
 
+	public function testTextNode()
+	{
+		$root = new SXE('<root><child /></root>');
+
+		$return = $root->appendXML('my text node');
+
+		$this->assertXmlStringEqualsXmlString('<root><child />my text node</root>', $root->asXML());
+		$this->assertSame(
+			dom_import_simplexml($root),
+			dom_import_simplexml($return)
+		);
+	}
+
+	/**
+	* @expectedException InvalidArgumentException
+	*/
 	public function testInvalidArgumentType()
 	{
 		$root = new SXE('<root><child /></root>');
-
-		try
-		{
-			$root->appendXML(false);
-			$fail = true;
-		}
-		catch (InvalidArgumentException $e)
-		{
-			$fail = false;
-		}
-
-		if ($fail)
-		{
-			self::fail();
-		}
+		$root->appendXML(false);
 	}
 
+	/**
+	* @expectedException InvalidArgumentException
+	*/
 	public function testInvalidXML()
 	{
 		$root = new SXE('<root><child /></root>');
-
-		if (!libxml_use_internal_errors())
-		{
-			$restore = true;
-			libxml_use_internal_errors(true);
-		}
-
-		$return = $root->appendXML('<bad><xml>');
-
-		if (isset($restore))
-		{
-			libxml_use_internal_errors(false);
-		}
-
-		$this->assertFalse($return);
+		$root->appendXML('<bad><xml>');
 	}
 }

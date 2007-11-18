@@ -83,43 +83,21 @@ class SXE_TestCase_getElementsByTagName extends PHPUnit_Framework_TestCase
 		$this->assertEquals($return, $expected_return);
 	}
 
+	/**
+	* @expectedException InvalidArgumentException
+	*/
 	public function testInvalidArgumentType()
 	{
 		$root = new SXE('<root />');
-
-		try
-		{
-			$root->getElementsByTagName(false);
-			$fail = true;
-		}
-		catch (InvalidArgumentException $e)
-		{
-			$fail = false;
-		}
-
-		if ($fail)
-		{
-			self::fail();
-		}
+		$root->getElementsByTagName(false);
 	}
 
+	/**
+	* @expectedException InvalidArgumentException
+	*/
 	public function testInvalidTagName()
 	{
 		$root = new SXE('<root />');
-
-		try
-		{
-			$root->getElementsByTagName('$$$$');
-			$fail = true;
-		}
-		catch (InvalidArgumentException $e)
-		{
-			$fail = false;
-		}
-
-		if ($fail)
-		{
-			self::fail();
-		}
+		$root->getElementsByTagName('$$$$');
 	}
 }
